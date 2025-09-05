@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Squid Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: skyblue;
+      text-align: center;
+    }
+    .screen { display: none; padding: 20px; }
+    .active { display: block; }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: none;
+      background: #333;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background: #555; }
+
+    .levels {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      justify-items: center;
+    }
+
+    #gameCanvas {
+      border: 2px solid black;
+      background: linear-gradient(#aef, #9f9);
+      display: block;
+      margin: 20px auto;
+    }
+
+    .controls {
+      margin-top: 10px;
+    }
+    .controls button {
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <!-- Start Screen -->
+  <div id="startScreen" class="screen active">
+    <h1>Squid Game</h1>
+    <button onclick="showScreen('levelScreen')">Start</button>
+    <button onclick="showScreen('settingsScreen')">Settings</button>
+  </div>
+
+  <!-- Settings Screen -->
+  <div id="settingsScreen" class="screen">
+    <h1>Settings</h1>
+    <p>Music: <button onclick="toggleMusic()">On/Off</button></p>
+    <p>Developer: <b>Badal Sarkar Official</b></p>
+    <p>Version: 1.0</p>
+    <button onclick="showScreen('startScreen')">Back</button>
+  </div>
+
+  <!-- Level Selection Screen -->
+  <div id="levelScreen" class="screen">
+    <h1>Select Level</h1>
+    <div class="levels" id="levelsContainer"></div>
+    <button onclick="showScreen('startScreen')">Back</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="gameScreen" class="screen">
+    <h1 id="status">RED LIGHT!</h1>
+    <canvas id="gameCanvas" width="300" height="400"></canvas>
+    <div class="controls">
+      <button onclick="movePlayer(-10)">←</button>
+      <button onclick="movePlayer(10)">→</button>
+    </div>
+    <button onclick="resetGame()">RESET</button>
+    <button onclick="showScreen('levelScreen')">Exit</button>
+  </div>
+
+  <script>
+    let currentScreen = 'startScreen';
+    let currentLevel = 1;
+    let isGreen = false;
+    let player, dollY = 50, goalY = 80, gameOver = false;
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function showScreen(screen) {
+      document.getElementById(currentScreen).classList.remove('active');
+      document.getElementById(screen).classList.add('active');
+      currentScreen = screen;
+    }
+
+    function toggleMusic() { alert("Music toggle coming soon!"); }
+
+    // Create 50 levels dynamically
+    const levelsContainer = document.getElementById("levelsContainer");
+    for (let i = 1; i <= 50; i++) {
+      const btn = document.createElement("button");
+      btn.textContent = i;
+      btn.onclick = () => startGame(i);
+      levelsContainer.appendChild(btn);
+    }
+
+    function startGame(level) {
+      currentLevel = level;
+      showScreen('gameScreen');
+      resetGame();
+      alert("🎮 Level " + level + " starting!");
+      startLights();
+    }
+
+    function resetGame() {
+      player = { x: canvas.width / 2 - 10, y: canvas.height - 30, size: 20 };
+      gameOver = false;
+      draw();
+    }
+
+    function startLights() {
+      setInterval(() => {
+        isGreen = !isGreen;
+        document.getElementById("status").innerText = isGreen ? "GREEN LIGHT!" : "RED LIGHT!";
+      }, 2000);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Goal Line
+      ctx.fillStyle = "red";
+      ctx.fillRect(0, goalY, canvas.width, 5);
+
+      // Doll
+      ctx.beginPath();
+      ctx.arc(canvas.width/2, dollY, 20, 0, Math.PI * 2);
+      ctx.fillStyle = isGreen ? "green" : "pink";
+      ctx.fill();
+
+      // Player
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
+      ctx.fillStyle = "blue";
+      ctx.fill();
+
+      if (!gameOver) requestAnimationFrame(draw);
+    }
+
+    function movePlayer(dx) {
+      if (gameOver) return;
+      if (!isGreen) {
+        alert("❌ You moved on RED LIGHT!");
+        gameOver = true;
+        return;
+      }
+      player.y -= 15;
+      if (player.y <= goalY + 10) {
+        alert("🎉 Level Complete!");
+        gameOver = true;
+      }
+    }
+
+    resetGame();
+  </script>
+</body>
+</html>
